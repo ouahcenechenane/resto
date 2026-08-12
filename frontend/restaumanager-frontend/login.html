@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RestauManager — Connexion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f4fb;
+  --surface:#ffffff;
+  --surface2:#f4f7fc;
+  --surface3:#eaf0fb;
+  --border:#dde5f4;
+  --border2:#c5d2ea;
+  --blue:#2563eb;
+  --blue2:#1d4ed8;
+  --blue3:#3b82f6;
+  --blue-soft:rgba(37,99,235,0.10);
+  --blue-glow:rgba(37,99,235,0.22);
+  --green:#22c55e;
+  --green-soft:rgba(34,197,94,0.10);
+  --red:#ef4444;
+  --red-soft:rgba(239,68,68,0.10);
+  --orange:#f97316;
+  --orange-soft:rgba(249,115,22,0.10);
+  --text:#000000;
+  --text2:#000000;
+  --muted:#000000;
+  --muted2:#000000;
+  --font:'Nunito',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --r:8px;
+  --r2:12px;
+  --r3:18px;
+  --shadow:0 2px 10px rgba(0,0,0,.07);
+  --shadow2:0 8px 30px rgba(0,0,0,.14);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{font-size:18px;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+button{cursor:pointer;font-family:var(--font);}
+input,select,textarea{font-family:var(--font);}
+
+*,*::before,*::after { color: #000000 !important; }
+
+::placeholder { color: #000000 !important; opacity: 0.6; }
+select,option,input,textarea { color: #000000 !important; background-color: var(--surface2); }
+option { background-color: var(--surface); }
+::selection { background: rgba(37,99,235,0.15); color: #000000; }
+*:focus,*:active { outline: none !important; -webkit-tap-highlight-color: transparent !important; }
+button { -webkit-tap-highlight-color: transparent; }
+button:active { transform:scale(0.98); background:inherit; color:inherit !important; }
+
+/* bg pattern */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(37,99,235,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(37,99,235,.03) 1px,transparent 1px);
+  background-size:48px 48px;
+  pointer-events:none;
+}
+
+.wrap{width:100%;max-width:460px;position:relative;z-index:1;animation:up .4s ease both;}
+@keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+/* brand */
+.brand{text-align:center;margin-bottom:32px;}
+.brand-ico{width:64px;height:64px;background:linear-gradient(135deg,var(--blue),var(--blue2));border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 16px;box-shadow:0 6px 24px var(--blue-glow);}
+.brand h1{font-size:1.6rem;font-weight:900;color:var(--text);letter-spacing:-0.3px;}
+.brand p{font-size:0.85rem;color:var(--muted);margin-top:6px;letter-spacing:2px;text-transform:uppercase;font-family:var(--mono);font-weight:600;}
+
+/* card */
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r3);padding:32px;box-shadow:var(--shadow2);}
+
+/* role grid */
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;}
+.role-opt{
+  padding:14px 10px;border:1.5px solid var(--border2);border-radius:var(--r2);
+  cursor:pointer;text-align:center;transition:all .15s;
+  font-size:0.85rem;font-weight:700;color:var(--text2);background:var(--surface2);
+}
+.role-opt:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-soft);}
+.role-opt.selected{background:var(--blue-soft);border-color:rgba(37,99,235,.5);color:var(--blue);box-shadow:0 2px 8px var(--blue-glow);}
+.role-ico{font-size:1.5rem;display:block;margin-bottom:6px;}
+
+/* sub-role */
+.sub-role-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;}
+.sub-opt{padding:10px;border:1.5px solid var(--border2);border-radius:var(--r);cursor:pointer;text-align:center;font-size:0.85rem;font-weight:700;color:var(--text2);background:var(--surface2);transition:all .15s;}
+.sub-opt:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-soft);}
+.sub-opt.selected{background:var(--blue-soft);border-color:rgba(37,99,235,.5);color:var(--blue);box-shadow:0 2px 8px var(--blue-glow);}
+
+/* form */
+.form-row{display:flex;flex-direction:column;gap:6px;margin-bottom:18px;}
+.form-row label{font-size:0.8rem;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;}
+.form-row input{
+  background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);
+  padding:14px 16px;font-size:1rem;color:var(--text);outline:none;
+  font-family:var(--font);transition:border-color .15s,box-shadow .15s;width:100%;
+}
+.form-row input:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(37,99,235,.08);}
+.pw-wrap{position:relative;}
+.pw-wrap input{padding-right:44px;}
+.pw-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1rem;color:var(--muted);padding:4px;}
+
+/* error */
+.err-msg{background:var(--red-soft);border:1.5px solid rgba(239,68,68,.25);border-radius:var(--r);padding:12px 14px;font-size:0.85rem;color:var(--red);font-weight:700;display:none;margin-bottom:14px;}
+
+/* btn */
+.btn-login{
+  width:100%;padding:16px;
+  background:linear-gradient(135deg,var(--blue),var(--blue2));color:white;border:none;border-radius:var(--r);
+  font-family:var(--font);font-size:1.1rem;font-weight:900;
+  cursor:pointer;transition:all .15s;
+  box-shadow:0 4px 16px var(--blue-glow);
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.btn-login:hover{background:linear-gradient(135deg,var(--blue2),#1e40af);}
+.btn-login:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;}
+
+/* demo box */
+.demo-box{
+  margin-top:20px;
+  background:rgba(37,99,235,.06);
+  border:1.5px solid rgba(37,99,235,.18);
+  border-radius:var(--r2);
+  padding:18px 20px;
+  font-size:0.8rem;
+  color:var(--text2);
+}
+.demo-box-title{font-weight:900;color:var(--blue);margin-bottom:12px;font-size:0.85rem;}
+.demo-accounts{display:flex;flex-direction:column;gap:6px;}
+.demo-acc{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;background:white;border:1.5px solid var(--border);
+  border-radius:var(--r);cursor:pointer;transition:all .15s;
+}
+.demo-acc:hover{border-color:var(--blue);background:var(--blue-soft);}
+.demo-acc-label{font-size:0.8rem;color:var(--text2);font-weight:700;}
+.demo-acc-creds{font-family:var(--mono);font-size:0.75rem;color:var(--muted);font-weight:600;}
+.demo-acc-btn{
+  font-size:0.75rem;font-weight:800;color:white;background:var(--blue);
+  border:none;border-radius:6px;padding:4px 10px;cursor:pointer;
+  font-family:var(--font);white-space:nowrap;
+  box-shadow:0 2px 8px var(--blue-glow);
+  transition:all .15s;
+}
+.demo-acc-btn:hover{background:var(--blue2);}
+
+.footer{text-align:center;margin-top:20px;font-size:0.75rem;color:var(--muted);font-family:var(--mono);font-weight:600;}
+</style>
+<base target="_blank">
+<!-- ✅ CHARGER LES SCRIPTS API ET REALTIME -->
+<script src="api-client.js"></script>
+<script src="realtime.js"></script>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="brand">
+    <div class="brand-ico">🍽</div>
+    <h1>RestauManager</h1>
+    <p>Restaurant Management System</p>
+  </div>
+
+  <div class="card">
+    <div style="font-size:1.1rem;font-weight:900;color:var(--text);margin-bottom:6px;text-align:center;">Connexion</div>
+    <div style="font-size:0.85rem;color:var(--muted);margin-bottom:26px;text-align:center;">Sélectionnez votre rôle puis connectez-vous</div>
+
+    <!-- Role selector -->
+    <div class="role-grid" id="role-grid">
+      <div class="role-opt selected" onclick="selectRole('admin',this)">
+        <span class="role-ico">👑</span>Admin
+      </div>
+      <div class="role-opt" onclick="selectRole('caissier',this)">
+        <span class="role-ico">💰</span>Caissier
+      </div>
+      <div class="role-opt" onclick="selectRole('serveur',this)">
+        <span class="role-ico">🛎</span>Serveur
+      </div>
+      <div class="role-opt" onclick="selectRole('reception',this)">
+        <span class="role-ico">🧾</span>Réception
+      </div>
+      <div class="role-opt" onclick="selectRole('cuisiner',this)">
+        <span class="role-ico">👨‍🍳</span>Cuisinier
+      </div>
+    </div>
+
+    <!-- Sub-role -->
+    <div id="sub-role-wrap" style="display:none;margin-bottom:18px;">
+      <div style="font-size:0.8rem;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Section</div>
+      <div class="sub-role-row" id="sub-role-row"></div>
+    </div>
+
+    <!-- Username -->
+    <div class="form-row">
+      <label>Nom d'utilisateur</label>
+      <input type="text" id="inp-user" placeholder="votre.nom" autocomplete="username">
+    </div>
+
+    <!-- Password -->
+    <div class="form-row">
+      <label>Mot de passe</label>
+      <div class="pw-wrap">
+        <input type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="pw-eye" onclick="togglePw()" type="button">👁</button>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div class="err-msg" id="err-msg"></div>
+
+    <!-- Submit -->
+    <button class="btn-login" id="btn-login" onclick="doLogin()">Se connecter →</button>
+  </div>
+
+  <div class="footer">© 2025 RestauManager Pro v2.0</div>
+</div>
+
+<script>
+const PAGES = {
+  admin:'admin-dashboard.html', caissier_restau:'restaurant-pos.html',
+  caissier_caffet:'restaurant-pos.html', serveur_restau:'serveur.html',
+  serveur_caffet:'serveur.html', reception:'reception.html',
+  cuisiner:'cuisine.html',
+};
+
+// ── ROLE UI ────────────────────────────────────────────────────────────────
+let selRole = 'admin';
+let selSubRole = '';
+
+const SUB_ROLES = {
+  caissier: [{code:'caissier_restau',label:'🍴 Restaurant'},{code:'caissier_caffet',label:'☕ Cafétéria'}],
+  serveur:  [{code:'serveur_restau', label:'🍴 Restaurant'},{code:'serveur_caffet', label:'☕ Cafétéria'}],
+};
+
+function selectRole(role, el) {
+  selRole = role; selSubRole = '';
+  document.querySelectorAll('.role-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  const subWrap = document.getElementById('sub-role-wrap');
+  const subRow  = document.getElementById('sub-role-row');
+  if (SUB_ROLES[role]) {
+    selSubRole = SUB_ROLES[role][0].code;
+    subRow.innerHTML = SUB_ROLES[role].map((sr,i)=>`
+      <div class="sub-opt ${i===0?'selected':''}" onclick="selectSub('${sr.code}',this)">${sr.label}</div>`).join('');
+    subWrap.style.display = 'block';
+  } else {
+    subWrap.style.display = 'none';
+  }
+}
+
+function selectSub(code, el) {
+  selSubRole = code;
+  document.querySelectorAll('.sub-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function togglePw() {
+  const i = document.getElementById('inp-pass');
+  i.type = i.type==='password'?'text':'password';
+}
+
+// ── LOGIN ──────────────────────────────────────────────────────────────────
+function showErr(msg) {
+  const el = document.getElementById('err-msg');
+  el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+}
+
+function saveAndRedirect(user, page, token) {
+  // ✅ CORRECTION : Utiliser 'token' et 'user' (sans préfixe rm_)
+  localStorage.setItem('token', token);
+  localStorage.setItem('user', JSON.stringify(user));
+  
+  // ✅ Démarrer RealtimeSync avant la redirection
+  if (window.RealtimeSync) {
+    try {
+      RealtimeSync.start({ debug: true });
+      console.log('✅ RealtimeSync démarré');
+    } catch(e) {
+      console.warn('RealtimeSync non disponible:', e);
+    }
+  }
+  
+  window.location.href = page;
+}
+
+async function doLogin() {
+  const username = document.getElementById('inp-user').value.trim();
+  const password = document.getElementById('inp-pass').value;
+  const btn = document.getElementById('btn-login');
+
+  document.getElementById('err-msg').style.display = 'none';
+
+  if (!username || !password) { showErr('Remplissez tous les champs.'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Connexion...';
+
+  const finalRole = selSubRole || (
+    selRole === 'admin'     ? 'admin' :
+    selRole === 'caissier'  ? 'caissier_restau' :
+    selRole === 'serveur'   ? 'serveur_restau' :
+    selRole === 'reception' ? 'reception' :
+    selRole === 'cuisiner'  ? 'cuisiner' : selRole
+  );
+
+  // ── 1. VRAI BACKEND EN PREMIER ────────────────────────────────────────
+  try {
+const ctrl = new AbortController();
+const timeout = setTimeout(() => ctrl.abort(), 30000);
+    const res = await fetch('http://localhost:8000/api/auth/login', {
+      method: 'POST',
+      signal: ctrl.signal,
+      headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
+      body: JSON.stringify({ username, password, role: finalRole }),
+    });
+    clearTimeout(timeout);
+
+    if (res.ok) {
+      const data = await res.json();
+      const page = PAGES[data.user?.role || finalRole] || 'admin-dashboard.html';
+      saveAndRedirect(data.user, page, data.token);
+      return;
+    }
+
+    if (res.status === 401 || res.status === 422) {
+      const err = await res.json().catch(() => ({}));
+      showErr(err.message || 'Identifiants incorrects.');
+      btn.disabled = false; btn.textContent = 'Se connecter →';
+      return;
+    }
+
+  } catch(e) {
+    console.warn('[Login] Serveur inaccessible, mode démo activé');
+  }
+
+  // ── 2. Identifiants incorrects ────────────────────────────────────────
+  showErr('Identifiants incorrects.');
+  btn.disabled = false;
+  btn.textContent = 'Se connecter →';
+}
+
+// ── AUTO-REDIRECT SI DÉJÀ CONNECTÉ ────────────────────────────────────────
+(function() {
+  try {
+    // ✅ CORRECTION : Utiliser 'token' et 'user' (sans préfixe rm_)
+    const token = localStorage.getItem('token');
+    const raw   = localStorage.getItem('user');
+    if (token && raw) {
+      const u = JSON.parse(raw);
+      if (u && u.role) {
+        window.location.href = PAGES[u.role] || 'admin-dashboard.html';
+      }
+    }
+  } catch(e) {
+    localStorage.clear();
+  }
+})();
+</script>
+</body>
+</html>

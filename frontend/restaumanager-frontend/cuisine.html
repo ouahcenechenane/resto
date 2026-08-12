@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RestauManager — Cuisine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f0f4fb; --surface:#fff; --surface2:#f4f7fc; --surface3:#eaf0fb;
+  --border:#dde5f4; --border2:#c5d2ea;
+  --blue:#2563eb; --blue2:#1d4ed8; --blue-soft:rgba(37,99,235,.10); --blue-glow:rgba(37,99,235,.22);
+  --green:#22c55e; --green2:#16a34a; --green-soft:rgba(34,197,94,.10);
+  --red:#ef4444; --red-soft:rgba(239,68,68,.10);
+  --orange:#f97316; --orange-soft:rgba(249,115,22,.10);
+  --purple:#8b5cf6; --purple-soft:rgba(139,92,246,.10);
+  --font:'Nunito',sans-serif; --mono:'JetBrains Mono',monospace;
+  --r:8px; --r2:12px; --r3:18px;
+  --shadow:0 2px 10px rgba(0,0,0,.07); --shadow2:0 8px 30px rgba(0,0,0,.14);
+}
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box; color:#111; }
+html { font-size:16px; }
+body { background:var(--bg); font-family:var(--font); height:100vh; overflow:hidden; display:flex; flex-direction:column; }
+button { cursor:pointer; font-family:var(--font); }
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-thumb { background:var(--border2); border-radius:4px; }
+
+/* ════════ TOPBAR ════════ */
+.topbar {
+  height:62px; background:var(--surface); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; padding:0 20px; gap:12px; flex-shrink:0;
+  box-shadow:0 1px 4px rgba(0,0,0,.05);
+}
+.brand { display:flex; align-items:center; gap:10px; font-size:1.05rem; font-weight:900; white-space:nowrap; }
+.brand-ico { width:40px; height:40px; background:linear-gradient(135deg,var(--blue),var(--blue2)); border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; box-shadow:0 3px 10px var(--blue-glow); flex-shrink:0; }
+.badge-cuisine { background:var(--blue-soft); border:1.5px solid rgba(37,99,235,.3); color:var(--blue); border-radius:20px; padding:3px 12px; font-size:0.78rem; font-weight:800; white-space:nowrap; }
+.topbar-kpis { display:flex; gap:7px; margin-left:auto; }
+.kpi { display:flex; align-items:center; gap:6px; padding:5px 12px; border-radius:var(--r); border:1.5px solid var(--border2); background:var(--surface2); font-size:0.78rem; font-weight:700; font-family:var(--mono); white-space:nowrap; }
+.kpi.red    { border-color:rgba(239,68,68,.3);  background:var(--red-soft); }
+.kpi.orange { border-color:rgba(249,115,22,.3); background:var(--orange-soft); }
+.kpi.green  { border-color:rgba(34,197,94,.3);  background:var(--green-soft); }
+.kpi.purple { border-color:rgba(139,92,246,.3); background:var(--purple-soft); }
+.clock { font-family:var(--mono); font-size:0.9rem; font-weight:700; color:var(--blue); background:var(--surface2); padding:6px 13px; border-radius:20px; border:1.5px solid var(--border); white-space:nowrap; }
+.btn-fs { padding:7px 12px; background:transparent; border:1.5px solid var(--border2); border-radius:var(--r); font-size:0.85rem; font-weight:700; flex-shrink:0; }
+.btn-fs:hover { background:var(--surface2); }
+
+/* ════════ BOUTON DÉCONNEXION ════════ */
+.btn-logout {
+  display:flex; align-items:center; gap:6px;
+  padding:7px 14px; border-radius:var(--r);
+  background:var(--red-soft); border:1.5px solid rgba(239,68,68,.3);
+  color:#b91c1c; font-size:0.82rem; font-weight:800;
+  transition:all .18s; white-space:nowrap; flex-shrink:0;
+}
+.btn-logout:hover {
+  background:var(--red); color:#fff;
+  border-color:var(--red);
+  box-shadow:0 0 10px rgba(239,68,68,.25);
+}
+.btn-logout svg { flex-shrink:0; }
+
+/* ════════ MODAL DÉCONNEXION ════════ */
+.logout-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.45);
+  display:none; align-items:center; justify-content:center; z-index:2000;
+}
+.logout-modal {
+  background:var(--surface); border-radius:var(--r2); padding:28px 28px 22px;
+  width:340px; max-width:95vw; box-shadow:var(--shadow2);
+  text-align:center;
+}
+.logout-modal .logout-ico {
+  font-size:2.6rem; margin-bottom:12px; display:block;
+}
+.logout-modal h3 { font-size:1.05rem; font-weight:900; margin-bottom:6px; }
+.logout-modal p  { font-size:0.82rem; color:#666; font-weight:600; margin-bottom:20px; line-height:1.5; }
+.logout-modal-acts { display:flex; gap:8px; justify-content:center; }
+.btn-logout-cancel {
+  padding:9px 18px; border:1.5px solid var(--border2);
+  background:var(--surface2); border-radius:var(--r);
+  font-weight:700; font-size:0.85rem; color:#444;
+  transition:background .15s;
+}
+.btn-logout-cancel:hover { background:var(--border); }
+.btn-logout-confirm {
+  padding:9px 20px; background:var(--red); color:#fff;
+  border:none; border-radius:var(--r);
+  font-weight:800; font-size:0.85rem;
+  transition:all .15s; display:flex; align-items:center; gap:6px;
+}
+.btn-logout-confirm:hover { background:#dc2626; box-shadow:0 0 12px rgba(239,68,68,.3); }
+
+/* ════════ TOOLBAR TABS ════════ */
+.toolbar-wrap { background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; }
+
+/* Tab nav */
+.tab-nav { display:flex; padding:0 20px; gap:2px; border-bottom:1px solid var(--border); }
+.tab-btn {
+  padding:10px 18px; font-size:0.85rem; font-weight:700; border:none; background:none;
+  border-bottom:2.5px solid transparent; margin-bottom:-1px; transition:all .15s; color:#666;
+  display:flex; align-items:center; gap:7px; white-space:nowrap;
+}
+.tab-btn:hover { color:#111; }
+.tab-btn.active { color:var(--blue); border-bottom-color:var(--blue); }
+.tab-btn .tab-count {
+  background:var(--surface2); border:1px solid var(--border2);
+  font-family:var(--mono); font-size:0.7rem; font-weight:700;
+  padding:1px 7px; border-radius:10px; min-width:22px; text-align:center;
+}
+.tab-btn.active .tab-count { background:var(--blue-soft); border-color:rgba(37,99,235,.3); color:var(--blue); }
+
+/* Tab stats bar */
+.tab-stats {
+  display:flex; align-items:center; gap:8px; padding:8px 20px;
+  overflow-x:auto; flex-wrap:nowrap;
+}
+.tab-stats::-webkit-scrollbar { height:3px; }
+.stat-chip {
+  display:flex; align-items:center; gap:6px;
+  padding:5px 12px; border-radius:20px; border:1.5px solid var(--border2);
+  background:var(--surface2); font-size:0.78rem; font-weight:700;
+  white-space:nowrap; flex-shrink:0; font-family:var(--mono);
+}
+.stat-chip .chip-label { font-family:var(--font); font-size:0.75rem; color:#666; font-weight:600; margin-right:2px; }
+.stat-chip.blue   { border-color:rgba(37,99,235,.3);  background:var(--blue-soft);   color:var(--blue); }
+.stat-chip.green  { border-color:rgba(34,197,94,.3);  background:var(--green-soft);  color:var(--green2); }
+.stat-chip.orange { border-color:rgba(249,115,22,.3); background:var(--orange-soft); color:var(--orange); }
+.stat-chip.red    { border-color:rgba(239,68,68,.3);  background:var(--red-soft);    color:var(--red); }
+.stat-chip.purple { border-color:rgba(139,92,246,.3); background:var(--purple-soft); color:var(--purple); }
+
+.toolbar-actions { display:flex; align-items:center; gap:7px; margin-left:auto; padding-left:12px; flex-shrink:0; }
+.tbtn { padding:6px 14px; border-radius:20px; font-size:0.8rem; font-weight:700; border:1.5px solid var(--border2); background:var(--surface); transition:all .15s; white-space:nowrap; }
+.tbtn:hover { border-color:var(--blue); }
+.tbtn.green-btn { background:var(--green-soft); border-color:var(--green); color:#166534; }
+.tbtn.green-btn:hover { background:var(--green); color:#fff; }
+.tbtn.red-btn { background:var(--red-soft); border-color:rgba(239,68,68,.3); color:#b91c1c; }
+.tbtn.red-btn.active { background:var(--red); border-color:var(--red); color:#fff; }
+.last-update { font-family:var(--mono); font-size:0.7rem; color:#888; white-space:nowrap; }
+
+/* ════════ MAIN ════════ */
+.main { flex:1; overflow-y:auto; padding:16px 20px; }
+
+.empty { display:flex; flex-direction:column; align-items:center; justify-content:center; height:55vh; gap:14px; text-align:center; }
+.empty .ico { font-size:3.5rem; opacity:.12; }
+.empty h3 { font-size:1rem; font-weight:900; }
+.empty p  { font-size:0.82rem; color:#666; font-weight:600; }
+
+/* ════════ SECTION ════════ */
+.section-block { margin-bottom:22px; }
+.section-title { display:flex; align-items:center; gap:10px; margin-bottom:11px; padding-bottom:8px; border-bottom:2px solid var(--border); }
+.section-label { font-size:0.76rem; font-weight:800; text-transform:uppercase; letter-spacing:2px; font-family:var(--mono); }
+.section-label.salle    { color:var(--blue); }
+.section-label.terrasse { color:var(--green); }
+.section-label.caffet   { color:var(--orange); }
+.section-stats { display:flex; gap:6px; }
+.sec-chip { font-family:var(--mono); font-size:0.68rem; color:#666; background:var(--surface2); padding:2px 8px; border-radius:8px; border:1px solid var(--border); font-weight:700; }
+
+/* ════════ GRID ════════ */
+.orders-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:12px; }
+
+/* ════════ CARD ════════ */
+.card { background:var(--surface); border:1.5px solid var(--border); border-radius:var(--r2); display:flex; flex-direction:column; transition:transform .18s,box-shadow .18s; overflow:hidden; }
+.card:hover { transform:translateY(-2px); box-shadow:var(--shadow); }
+.card.has-notes { border-color:rgba(249,115,22,.4); }
+.card.urgent { border-color:rgba(239,68,68,.5); animation:urgentglow 2s infinite; }
+@keyframes urgentglow { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.15)} 50%{box-shadow:0 0 0 6px rgba(239,68,68,0)} }
+
+.card-head { padding:10px 14px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.card-head.salle    { background:linear-gradient(90deg,rgba(37,99,235,.07),transparent); border-left:3px solid var(--blue); }
+.card-head.terrasse { background:linear-gradient(90deg,rgba(34,197,94,.07),transparent); border-left:3px solid var(--green); }
+.card-head.caffet   { background:linear-gradient(90deg,rgba(249,115,22,.07),transparent); border-left:3px solid var(--orange); }
+
+.card-table { font-size:1rem; font-weight:900; font-family:var(--mono); }
+.card-ordnum { font-family:var(--mono); font-size:0.68rem; background:var(--blue-soft); border:1px solid rgba(37,99,235,.25); color:var(--blue); padding:2px 8px; border-radius:8px; font-weight:700; }
+.card-sec { font-size:0.67rem; color:#666; background:var(--surface2); padding:2px 7px; border-radius:7px; border:1px solid var(--border); font-weight:700; }
+.card-server { font-size:0.7rem; color:#888; font-weight:600; }
+
+.card-head-right { margin-left:auto; display:flex; align-items:center; gap:6px; }
+.tag-time { font-family:var(--mono); font-size:0.72rem; font-weight:700; padding:3px 9px; border-radius:14px; }
+.tag-time.fresh  { background:var(--surface2); color:#777; border:1px solid var(--border); }
+.tag-time.ok     { background:var(--green-soft); color:#166534; }
+.tag-time.warn   { background:var(--orange-soft); color:#9a3412; }
+.tag-time.late   { background:var(--red-soft); color:#b91c1c; }
+.tag-urgent { display:inline-flex; align-items:center; gap:4px; background:var(--red-soft); border:1.5px solid rgba(239,68,68,.3); color:#b91c1c; font-size:0.65rem; font-weight:800; padding:2px 7px; border-radius:12px; }
+.pulse { width:6px; height:6px; border-radius:50%; background:var(--red); animation:pulsedot 1s infinite; flex-shrink:0; }
+@keyframes pulsedot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+
+.card-meta { display:flex; align-items:center; gap:6px; padding:6px 14px; background:var(--surface3); border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.meta-chip { font-family:var(--mono); font-size:0.68rem; font-weight:700; padding:2px 8px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); display:flex; align-items:center; gap:4px; }
+.meta-chip.notes { border-color:rgba(249,115,22,.35); background:var(--orange-soft); color:var(--orange); }
+.meta-chip.free  { border-color:rgba(34,197,94,.35);  background:var(--green-soft);  color:var(--green2); }
+.meta-chip.pax   { border-color:rgba(37,99,235,.25);  background:var(--blue-soft);   color:var(--blue); }
+
+.card-items { flex:1; padding:10px 14px; }
+.person-block { margin-bottom:6px; }
+.person-label { font-family:var(--mono); font-size:0.68rem; font-weight:800; color:#888; margin-bottom:4px; padding:2px 0; text-transform:uppercase; letter-spacing:.5px; }
+.item-row { display:flex; align-items:flex-start; gap:8px; padding:6px 0; border-bottom:1px solid var(--border); }
+.item-row:last-child { border-bottom:none; }
+.item-qty { font-family:var(--mono); font-size:0.82rem; font-weight:800; color:var(--blue); flex-shrink:0; min-width:24px; }
+.item-info { flex:1; }
+.item-name { font-size:0.82rem; font-weight:700; display:flex; align-items:center; gap:5px; flex-wrap:wrap; line-height:1.3; }
+.tag-free { background:var(--green-soft); color:#166534; font-size:0.62rem; font-weight:800; padding:1px 5px; border-radius:5px; border:1px solid rgba(34,197,94,.3); }
+.item-note-row { font-size:0.72rem; color:var(--orange); margin-top:3px; display:flex; align-items:flex-start; gap:4px; font-weight:600; line-height:1.3; }
+.item-note-row::before { content:'📌'; flex-shrink:0; }
+
+.card-foot { padding:9px 14px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:var(--surface2); gap:8px; }
+.foot-info { font-size:0.72rem; color:#666; font-family:var(--mono); font-weight:600; }
+.foot-actions { display:flex; gap:6px; flex-shrink:0; }
+.btn-done { padding:7px 14px; background:var(--green); color:#fff; border:none; border-radius:var(--r); font-size:0.78rem; font-weight:800; display:flex; align-items:center; gap:4px; transition:all .15s; }
+.btn-done:hover { background:var(--green2); box-shadow:0 0 10px rgba(34,197,94,.3); }
+.btn-done:disabled { opacity:.6; cursor:not-allowed; }
+.btn-retard { padding:7px 11px; background:var(--red-soft); color:#b91c1c; border:1.5px solid rgba(239,68,68,.3); border-radius:var(--r); font-size:0.72rem; font-weight:700; transition:all .15s; }
+.btn-retard:hover { background:rgba(239,68,68,.18); }
+
+/* ════════ TOAST ════════ */
+.toast-stack { position:fixed; bottom:16px; right:16px; display:flex; flex-direction:column; gap:6px; z-index:9999; }
+.toast { display:flex; align-items:center; gap:8px; padding:10px 16px; border-radius:var(--r); font-size:0.82rem; font-weight:700; box-shadow:var(--shadow2); animation:toastin .2s ease; max-width:300px; color:#fff; }
+.toast.ok   { background:var(--green); }
+.toast.err  { background:var(--red); }
+.toast.info { background:var(--blue); }
+@keyframes toastin { from{opacity:0;transform:translateX(14px)} to{opacity:1;transform:none} }
+
+/* ════════ MODAL ════════ */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; z-index:1000; }
+.modal { background:var(--surface); border-radius:var(--r2); padding:22px 24px; width:360px; max-width:95vw; box-shadow:var(--shadow2); }
+.modal-head { font-weight:900; font-size:1rem; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; }
+.modal-close { background:none; border:none; font-size:1.2rem; cursor:pointer; color:#888; }
+.fg { margin-bottom:12px; }
+.fg label { font-weight:700; font-size:0.82rem; display:block; margin-bottom:5px; }
+.fg input { width:100%; border:1.5px solid var(--border); border-radius:var(--r); padding:9px 12px; font-size:0.88rem; font-family:var(--font); background:var(--surface2); }
+.fg input:focus { border-color:var(--blue); outline:none; }
+.modal-acts { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+.btn-cancel  { border:1.5px solid var(--border); background:var(--surface2); border-radius:var(--r); padding:8px 14px; font-weight:700; font-size:0.82rem; }
+.btn-confirm { background:var(--green); color:#fff; border:none; border-radius:var(--r); padding:8px 16px; font-weight:800; font-size:0.82rem; }
+</style>
+</head>
+<body>
+
+<div class="toast-stack" id="toast-stack"></div>
+
+<!-- ════ MODAL DÉCONNEXION ════ -->
+<div class="logout-overlay" id="logout-overlay">
+  <div class="logout-modal">
+    <span class="logout-ico">🔐</span>
+    <h3>Se déconnecter ?</h3>
+    <p>Vous allez quitter l'interface cuisine.</p>
+    <div class="logout-modal-acts">
+      <button class="btn-logout-cancel" onclick="closeLogoutModal()">Annuler</button>
+      <button class="btn-logout-confirm" onclick="confirmLogout()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Déconnecter
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ TOPBAR ════ -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-ico">🍳</div>
+    RestauManager
+  </div>
+  <span class="badge-cuisine">🍳 Cuisine</span>
+
+  <div class="topbar-kpis">
+    <div class="kpi"        id="kpi-tables">🪑 — table(s)</div>
+    <div class="kpi"        id="kpi-orders">📋 — cmde(s)</div>
+    <div class="kpi"        id="kpi-items" >🍽 — art.</div>
+    <div class="kpi orange" id="kpi-notes" >📌 — note(s)</div>
+    <div class="kpi"        id="kpi-status">✓ À jour</div>
+  </div>
+
+  <div class="clock" id="clock">--:--:--</div>
+  <button class="btn-fs" onclick="toggleFullscreen()" title="Plein écran">⛶</button>
+
+  <!-- Bouton déconnexion -->
+  <button class="btn-logout" onclick="openLogoutModal()" title="Se déconnecter">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+    Déconnexion
+  </button>
+</header>
+
+<!-- ════ TOOLBAR TABS ════ -->
+<div class="toolbar-wrap">
+  <div style="display:flex; align-items:center;">
+    <div class="tab-nav" style="flex:1;">
+      <button class="tab-btn active" id="tab-serveur"   onclick="setTab('serveur',this)">
+        🛎 Serveur / Salle <span class="tab-count" id="tc-serveur">0</span>
+      </button>
+      <button class="tab-btn"        id="tab-reception" onclick="setTab('reception',this)">
+        📦 Réception / Emporter <span class="tab-count" id="tc-reception">0</span>
+      </button>
+    </div>
+    <div class="toolbar-actions">
+      <button class="tbtn red-btn" id="btn-urgent" onclick="toggleUrgent(this)">⚠ Urgents</button>
+      <button class="tbtn green-btn" onclick="openModal()">➕ Ajouter plat</button>
+      <span class="last-update" id="last-update">—</span>
+    </div>
+  </div>
+
+  <div class="tab-stats" id="tab-stats"></div>
+</div>
+
+<!-- ════ MAIN ════ -->
+<main class="main" id="main">
+  <div class="empty" id="empty-state">
+    <div class="ico">🍳</div>
+    <h3>Aucune commande en cours</h3>
+    <p>Toutes les tables sont à jour !</p>
+  </div>
+</main>
+
+<!-- ════ MODAL AJOUTER PLAT ════ -->
+<div class="overlay" id="modal-plat">
+  <div class="modal">
+    <div class="modal-head">
+      ➕ Ajouter un plat
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="fg">
+      <label>Nom du plat</label>
+      <input type="text" id="plat-name" placeholder="Ex: Couscous royal">
+    </div>
+    <div class="fg">
+      <label>Prix (DA)</label>
+      <input type="number" id="plat-price" placeholder="Ex: 1200" min="0">
+    </div>
+    <div class="fg">
+      <label>Catégorie</label>
+      <input type="text" id="plat-cat" placeholder="Ex: Plats, Entrées, Desserts...">
+    </div>
+    <div class="modal-acts">
+      <button class="btn-cancel"  onclick="closeModal()">Annuler</button>
+      <button class="btn-confirm" onclick="confirmAddPlat()">➕ Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script>
+// ════════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════════
+const API_BASE = 'http://localhost:8000/api';
+
+const SECTIONS = {
+  salle:    { name:'Salle',     icon:'🍴', css:'salle'    },
+  terrasse: { name:'Terrasse',  icon:'🌿', css:'terrasse' },
+  caffet:   { name:'Cafétéria', icon:'☕', css:'caffet'   },
+};
+
+let tablesData  = [];
+let currentTab  = 'serveur';
+let urgentOnly  = false;
+let loadSeq     = 0;
+
+// ════════════════════════════════════════════════════════
+// HEADERS
+// ════════════════════════════════════════════════════════
+function h() { return typeof rmHeaders === 'function' ? rmHeaders() : {'Content-Type':'application/json'}; }
+
+// ════════════════════════════════════════════════════════
+// DÉCONNEXION
+// ════════════════════════════════════════════════════════
+function openLogoutModal() {
+  document.getElementById('logout-overlay').style.display = 'flex';
+}
+function closeLogoutModal() {
+  document.getElementById('logout-overlay').style.display = 'none';
+}
+async function confirmLogout() {
+  try {
+    // Appel API logout si disponible
+    await fetch(API_BASE + '/auth/logout', { method:'POST', headers: h() }).catch(()=>{});
+  } catch(e) {}
+  // Nettoyage session/token
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  localStorage.removeItem('rm_token');
+  localStorage.removeItem('rm_user');
+  sessionStorage.clear();
+  if (window.RealtimeSync && RealtimeSync.stop) {
+    try { RealtimeSync.stop(); } catch(e) {}
+  }
+  notify('À bientôt 👋', 'info');
+  setTimeout(() => { window.location.href = 'login.html'; }, 900);
+}
+
+// ════════════════════════════════════════════════════════
+// LOAD DATA
+// ════════════════════════════════════════════════════════
+async function loadData() {
+  const seq = ++loadSeq;
+  try {
+    const [rO, rT] = await Promise.all([
+      fetch(API_BASE + '/orders', { headers: h() }),
+      fetch(API_BASE + '/tables', { headers: h() }),
+    ]);
+    if (!rO.ok || !rT.ok) {
+      console.warn('[Cuisine] Erreur API', rO.status, rT.status);
+      return;
+    }
+    const rawO   = await rO.json();
+    const rawT   = await rT.json();
+    const orders = Array.isArray(rawO) ? rawO : (rawO.data || []);
+    const tables = Array.isArray(rawT) ? rawT : (rawT.data || []);
+
+    const validated = orders.filter(o => o.status === 'validated');
+
+    if (seq !== loadSeq) return;
+
+    tablesData = validated.map(o => normalizeOrder(o, tables));
+
+    try { renderCuisine(); } catch(renderErr) { console.error('[Cuisine] Erreur renderCuisine():', renderErr); }
+
+    const lu = document.getElementById('last-update');
+    if (lu) lu.textContent =
+      'Actualisé ' + new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+  } catch(e) {
+    console.error('[Cuisine] Erreur:', e);
+  }
+}
+
+function normalizeOrder(o, tables) {
+  const tbl = tables.find(t => t.id === o.table_id)
+           || (typeof o.table === 'object' && o.table ? o.table : {});
+  const secRaw = tbl.section || o.section;
+  const section = secRaw && typeof secRaw === 'object'
+    ? (secRaw.code || 'salle')
+    : (secRaw || tbl.section_code || 'salle');
+
+  const byPerson = {};
+  if (Array.isArray(o.persons) && o.persons.length) {
+    o.persons.forEach(p => {
+      const idx = String(p.person_index ?? p.index ?? 0);
+      byPerson[idx] = (p.items || []).map(mapItem);
+    });
+  } else if (Array.isArray(o.order_items) && o.order_items.length) {
+    o.order_items.forEach(i => {
+      const idx = String(i.person_index ?? 0);
+      (byPerson[idx] = byPerson[idx] || []).push(mapItem(i));
+    });
+  } else if (Array.isArray(o.items) && o.items.length) {
+    o.items.forEach(i => {
+      const idx = String(i.person_index ?? 0);
+      (byPerson[idx] = byPerson[idx] || []).push(mapItem(i));
+    });
+  }
+  if (!Object.keys(byPerson).length) byPerson['0'] = [];
+
+  return {
+    id:          'api_' + o.id,
+    apiOrderId:  o.id,
+    orderNum:    o.order_number || o.id,
+    num:         tbl.number ?? tbl.num ?? o.table_number ?? o.table_id ?? '?',
+    section,
+    type:        o.type || 'sur_place',
+    persons:     o.persons_count || o.persons?.length || 1,
+    byPerson,
+    validatedAt: o.validated_at || o.updated_at || o.created_at,
+    server:      o.user?.name || o.waiter?.name || '—',
+    notes:       o.notes || '',
+  };
+}
+
+function mapItem(i) {
+  return {
+    id:       i.id,
+    name:     i.item_name || i.name || i.menu_item?.name || '?',
+    qty:      i.quantity  || i.qty  || 1,
+    note:     i.kitchen_note || i.note || i.notes || '',
+    free:     i.is_free    || false,
+    returned: i.is_returned || false,
+    price:    i.unit_price  || i.price || 0,
+  };
+}
+
+// ════════════════════════════════════════════════════════
+// MARK DONE
+// ════════════════════════════════════════════════════════
+async function markDone(tableId) {
+  const t = tablesData.find(x => x.id === tableId);
+  const btn = document.querySelector(`[data-done="${tableId}"]`);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ En cours…'; }
+
+  if (t?.apiOrderId) {
+    try {
+      const res = await fetch(API_BASE + '/orders/' + t.apiOrderId + '/ready', {
+        method:'PATCH', headers: h()
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(()=>({}));
+        notify('Erreur: ' + (err.message||res.status), 'err');
+        if (btn) { btn.disabled=false; btn.innerHTML='✓ Prêt à servir'; }
+        return;
+      }
+    } catch(e) {
+      notify('Erreur réseau', 'err');
+      if (btn) { btn.disabled=false; btn.innerHTML='✓ Prêt à servir'; }
+      return;
+    }
+  }
+
+  tablesData = tablesData.filter(x => x.id !== tableId);
+  renderCuisine();
+  notify('✓ Commande N°' + (t?.orderNum||'?') + ' marquée prête !', 'ok');
+}
+
+async function signalRetard(tableId, tableNum) {
+  const t = tablesData.find(x => x.id === tableId);
+  try {
+    await fetch(API_BASE + '/orders/' + (t?.apiOrderId||0) + '/delay', {
+      method:'POST', headers: h(),
+      body: JSON.stringify({ reason: 'Retard cuisine signalé' })
+    });
+  } catch(e) {}
+  notify('⚠ Retard signalé — Table ' + tableNum + ' (Cmde N°' + (t?.orderNum||'?') + ')', 'err');
+}
+
+// ════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════
+function timeDiff(v) {
+  if (!v) return null;
+  return Math.floor((Date.now() - new Date(v).getTime()) / 60000);
+}
+function timeClass(d) {
+  if (d===null||d<5) return 'fresh';
+  if (d<10) return 'ok';
+  if (d<15) return 'warn';
+  return 'late';
+}
+function timeLabel(d) {
+  if (d===null||d<1) return "À l'instant";
+  return d + ' min';
+}
+function getItems(t) {
+  return Object.values(t.byPerson).flat().filter(i => !i.returned);
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function computeStats(list) {
+  let orders=0, tables=new Set(), items=0, notes=0, free=0, urgent=0, waits=[];
+  list.forEach(t => {
+    const its = getItems(t);
+    if (!its.length) return;
+    orders++;
+    tables.add(t.num);
+    items  += its.reduce((s,i)=>s+i.qty,0);
+    notes  += its.filter(i=>i.note?.trim()).length;
+    free   += its.filter(i=>i.free).length;
+    const d = timeDiff(t.validatedAt);
+    if (d!==null) { waits.push(d); if(d>=15) urgent++; }
+  });
+  const avgWait = waits.length ? Math.round(waits.reduce((a,b)=>a+b,0)/waits.length) : 0;
+  return { orders, tables: tables.size, items, notes, free, urgent, avgWait };
+}
+
+function updateTabStats() {
+  const servList = tablesData.filter(t => t.type!=='emporter' && t.section!=='emporter');
+  const recList  = tablesData.filter(t => t.type==='emporter' || t.section==='emporter');
+  const tcServeur   = document.getElementById('tc-serveur');
+  const tcReception = document.getElementById('tc-reception');
+  if (tcServeur)   tcServeur.textContent   = servList.filter(t=>getItems(t).length).length;
+  if (tcReception) tcReception.textContent = recList.filter(t=>getItems(t).length).length;
+
+  const activeList = currentTab==='serveur' ? servList : recList;
+  let list = urgentOnly ? activeList.filter(t=>{ const d=timeDiff(t.validatedAt); return d!==null&&d>=15; }) : activeList;
+  const s = computeStats(list);
+
+  const all = computeStats(tablesData);
+  const kpiTables = document.getElementById('kpi-tables');
+  const kpiOrders = document.getElementById('kpi-orders');
+  const kpiItems  = document.getElementById('kpi-items');
+  const kpiNotes  = document.getElementById('kpi-notes');
+  if (kpiTables) kpiTables.textContent = '🪑 ' + all.tables + ' table(s)';
+  if (kpiOrders) kpiOrders.textContent = '📋 ' + all.orders + ' cmde(s)';
+  if (kpiItems)  kpiItems.textContent  = '🍽 ' + all.items  + ' art.';
+  if (kpiNotes)  kpiNotes.textContent  = '📌 ' + all.notes  + ' note(s)';
+  const ks = document.getElementById('kpi-status');
+  if (ks) {
+    if (all.urgent>0) { ks.innerHTML='<b style="color:#b91c1c">🔴 '+all.urgent+' urgent(s)</b>'; ks.className='kpi red'; }
+    else if (all.items>0) { ks.textContent='⏳ En cours'; ks.className='kpi'; }
+    else { ks.textContent='✓ À jour'; ks.className='kpi green'; }
+  }
+
+  const bar = document.getElementById('tab-stats');
+  if (bar) bar.innerHTML = `
+    <div class="stat-chip blue"><span class="chip-label">Commandes</span> ${s.orders}</div>
+    <div class="stat-chip blue"><span class="chip-label">Tables</span> ${s.tables}</div>
+    <div class="stat-chip ${s.items>0?'blue':''}"><span class="chip-label">Articles</span> ${s.items}</div>
+    ${s.notes>0 ? `<div class="stat-chip orange"><span class="chip-label">Notes cuisine</span> ${s.notes}</div>` : ''}
+    ${s.free>0  ? `<div class="stat-chip green"><span class="chip-label">Offerts</span> ${s.free}</div>` : ''}
+    ${s.urgent>0? `<div class="stat-chip red"><span class="chip-label">Urgents</span> ${s.urgent}</div>` : ''}
+    ${s.avgWait>0? `<div class="stat-chip ${s.avgWait>=15?'red':s.avgWait>=10?'orange':''}">
+      <span class="chip-label">Attente moy.</span> ${s.avgWait} min
+    </div>` : ''}
+  `;
+}
+
+// ════════════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════════════
+function renderCuisine() {
+  updateTabStats();
+
+  let list = tablesData.filter(t => {
+    if (currentTab==='reception') return t.type==='emporter' || t.section==='emporter';
+    return t.type!=='emporter' && t.section!=='emporter';
+  });
+  if (urgentOnly) list = list.filter(t => { const d=timeDiff(t.validatedAt); return d!==null&&d>=15; });
+
+  const main  = document.getElementById('main');
+  const empty = document.getElementById('empty-state');
+  if (!main) return;
+  main.querySelectorAll('.section-block').forEach(e=>e.remove());
+
+  const withItems = list.filter(t => getItems(t).length>0);
+  if (!withItems.length) {
+    if (empty) empty.style.display='flex';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  const bySection = {};
+  withItems.forEach(t => {
+    const s = t.section || 'salle';
+    (bySection[s] = bySection[s]||[]).push(t);
+  });
+
+  const secOrder = ['salle','terrasse','caffet'];
+  const extras   = Object.keys(bySection).filter(s=>!secOrder.includes(s));
+  [...secOrder, ...extras].forEach(sec => {
+    const tables = bySection[sec];
+    if (!tables?.length) return;
+    const cfg = SECTIONS[sec] || { name:sec, icon:'🍽', css:'salle' };
+    tables.sort((a,b) => (timeDiff(b.validatedAt)||0)-(timeDiff(a.validatedAt)||0));
+
+    const ss = computeStats(tables);
+    const cardsHtml = tables.map(t => buildCard(t, cfg)).filter(Boolean).join('');
+    if (!cardsHtml) return;
+
+    const block = document.createElement('div');
+    block.className = 'section-block';
+    block.innerHTML = `
+      <div class="section-title">
+        <span class="section-label ${cfg.css}">${cfg.icon} ${cfg.name}</span>
+        <div class="section-stats">
+          <span class="sec-chip">📋 ${ss.orders} cmde(s)</span>
+          <span class="sec-chip">🍽 ${ss.items} art.</span>
+          ${ss.notes>0  ? `<span class="sec-chip" style="border-color:rgba(249,115,22,.3);background:var(--orange-soft);color:var(--orange)">📌 ${ss.notes} note(s)</span>` : ''}
+          ${ss.urgent>0 ? `<span class="sec-chip" style="border-color:rgba(239,68,68,.3);background:var(--red-soft);color:var(--red)">🔴 ${ss.urgent} urgent(s)</span>` : ''}
+        </div>
+      </div>
+      <div class="orders-grid">${cardsHtml}</div>`;
+    main.appendChild(block);
+  });
+}
+
+function buildCard(t, cfg) {
+  const diff     = timeDiff(t.validatedAt);
+  const isLate   = diff!==null && diff>=15;
+  const isWarn   = diff!==null && diff>=10 && diff<15;
+  const items    = getItems(t);
+  const hasNotes = items.some(i=>i.note?.trim());
+  const hasFree  = items.some(i=>i.free);
+  const totalQty = items.reduce((s,i)=>s+i.qty, 0);
+  const noteCount= items.filter(i=>i.note?.trim()).length;
+
+  let itemsHtml = '';
+  const keys = Object.keys(t.byPerson).sort((a,b)=>Number(a)-Number(b));
+  keys.forEach(pk => {
+    const pItems = (t.byPerson[pk]||[]).filter(i=>!i.returned);
+    if (!pItems.length) return;
+    itemsHtml += `<div class="person-block">
+      <div class="person-label">Personne ${Number(pk)+1}</div>`;
+    pItems.forEach(item => {
+      itemsHtml += `
+        <div class="item-row">
+          <span class="item-qty">${item.qty}×</span>
+          <div class="item-info">
+            <div class="item-name">
+              ${esc(item.name)}
+              ${item.free ? '<span class="tag-free">OFFERT</span>' : ''}
+            </div>
+            ${item.note?.trim() ? `<div class="item-note-row">${esc(item.note)}</div>` : ''}
+          </div>
+        </div>`;
+    });
+    itemsHtml += '</div>';
+  });
+
+  if (!itemsHtml) return '';
+
+  return `
+    <div class="card ${hasNotes?'has-notes':''} ${isLate?'urgent':''}">
+      <div class="card-head ${cfg.css}">
+        <span class="card-table">${cfg.icon} Table ${esc(String(t.num))}</span>
+        <span class="card-ordnum">N°${esc(String(t.orderNum))}</span>
+        <span class="card-sec">${cfg.name}</span>
+        ${isLate ? '<span class="tag-urgent"><div class="pulse"></div>Urgent</span>' : ''}
+        <div class="card-head-right">
+          <span class="tag-time ${timeClass(diff)}">${timeLabel(diff)}</span>
+        </div>
+      </div>
+      <div class="card-meta">
+        <span class="meta-chip pax">👥 ${t.persons} pers.</span>
+        <span class="meta-chip pax">🍽 ${totalQty} art.</span>
+        ${noteCount>0  ? `<span class="meta-chip notes">📌 ${noteCount} note(s)</span>` : ''}
+        ${hasFree      ? `<span class="meta-chip free">🎁 Offert(s)</span>` : ''}
+        <span class="meta-chip" style="color:#888">👤 ${esc(t.server)}</span>
+      </div>
+      <div class="card-items">${itemsHtml}</div>
+      <div class="card-foot">
+        <span class="foot-info">Cmde N°${esc(String(t.orderNum))} · ${timeLabel(diff)}</span>
+        <div class="foot-actions">
+          ${(isLate||isWarn) ? `<button class="btn-retard" onclick="signalRetard('${t.id}','${esc(String(t.num))}')" title="Signaler retard caissier">⚠ Retard</button>` : ''}
+          <button class="btn-done" data-done="${t.id}" onclick="markDone('${t.id}')">✓ Prêt à servir</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════════
+// TAB & FILTERS
+// ════════════════════════════════════════════════════════
+function setTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderCuisine();
+}
+
+function toggleUrgent(el) {
+  urgentOnly = !urgentOnly;
+  el.classList.toggle('active', urgentOnly);
+  renderCuisine();
+}
+
+// ════════════════════════════════════════════════════════
+// MODAL AJOUTER PLAT
+// ════════════════════════════════════════════════════════
+function openModal()  { document.getElementById('modal-plat').style.display='flex'; }
+function closeModal() { document.getElementById('modal-plat').style.display='none'; }
+
+async function confirmAddPlat() {
+  const name  = document.getElementById('plat-name').value.trim();
+  const price = parseFloat(document.getElementById('plat-price').value);
+  const cat   = document.getElementById('plat-cat').value.trim();
+  if (!name)           { notify('Entrez le nom du plat','err'); return; }
+  if (!price||price<=0){ notify('Entrez un prix valide','err'); return; }
+  try {
+    const res = await fetch(API_BASE + '/admin/menu/items', {
+      method:'POST', headers: h(),
+      body: JSON.stringify({ name, price, category_name: cat||'Plats', is_available:true })
+    });
+    if (res.ok) {
+      notify(name + ' ajouté au menu ✓','ok');
+      closeModal();
+      ['plat-name','plat-price','plat-cat'].forEach(id=>document.getElementById(id).value='');
+    } else {
+      const err = await res.json().catch(()=>({}));
+      notify(err.message||"Erreur lors de l'ajout",'err');
+    }
+  } catch(e) { notify('Erreur réseau','err'); }
+}
+
+// ════════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════════
+function notify(msg, type='ok') {
+  const stack = document.getElementById('toast-stack');
+  const el = document.createElement('div');
+  el.className = 'toast '+type;
+  el.textContent = msg;
+  stack.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='.3s'; }, 2700);
+  setTimeout(()=>el.remove(), 3100);
+}
+
+function updateClock() {
+  const n = new Date();
+  document.getElementById('clock').textContent =
+    [n.getHours(),n.getMinutes(),n.getSeconds()].map(v=>String(v).padStart(2,'0')).join(':');
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+  else document.exitFullscreen();
+}
+
+// Fermer modal déconnexion sur clic overlay
+document.getElementById('logout-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeLogoutModal();
+});
+
+// ════════════════════════════════════════════════════════
+// REALTIME + INIT
+// ════════════════════════════════════════════════════════
+window.addEventListener('load', function() {
+  let loadTimer = null;
+  const loadDataDebounced = () => {
+    clearTimeout(loadTimer);
+    loadTimer = setTimeout(loadData, 150);
+  };
+
+  if (typeof RealtimeSync !== 'undefined') {
+    RealtimeSync.on('order.validated', (data) => {
+      loadDataDebounced();
+      const label = data.type==='emporter'
+        ? '📦 Emporter N°'+(data.order_number||'')
+        : '🔔 Table '+(data.table_number||'')+' — nouvelle commande';
+      notify(label,'ok');
+    });
+    ['order.created','order.item_added','order.item_updated','order.item_removed','order.ready']
+      .forEach(ev => RealtimeSync.on(ev, loadDataDebounced));
+    RealtimeSync.on('order.cancelled', (data) => {
+      loadDataDebounced();
+      notify('❌ Table '+(data.table_number||'')+' — annulée','err');
+    });
+    RealtimeSync.on('emporter.created', (data) => {
+      loadDataDebounced();
+      notify('📦 Emporter N°'+(data.order_number||''),'ok');
+    });
+    RealtimeSync.on('__connected', (data) => {
+      console.log('[Cuisine] Temps réel:', data.mode);
+    });
+    RealtimeSync.start({ debug:false });
+  }
+
+  loadData();
+  setInterval(loadData, 30000);
+});
+
+setInterval(updateClock, 1000);
+updateClock();
+</script>
+
+<script src="api-client.js"></script>
+<script src="api-bridge.js"></script>
+<script src="realtime.js"></script>
+</body>
+</html>

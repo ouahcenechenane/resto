@@ -1,0 +1,7 @@
+backend/restaumanager-backend/vendor/
+backend/restaumanager-backend/.env
+backend/restaumanager-backend/storage/logs/
+backend/restaumanager-backend/bootstrap/cache/
+backend/restaumanager-backend/database/database.sqlite
+node_modules/
+.DS_Store
