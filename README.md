@@ -1,11 +1,13 @@
 # 🍽️ RestauManager
 
-**Système de gestion de restaurant complet** — gestion des tables, commandes, cuisine, caisse et statistiques en temps réel, avec des interfaces dédiées à chaque rôle (Admin, Caissier, Serveur, Réception, Cuisinier).
+**Système de gestion de restaurant complet**, événementiel et temps réel — de la prise de commande en salle jusqu'à l'encaissement, en passant par la cuisine, la réception et les statistiques, avec une interface dédiée à chaque rôle.
 
 ![Statut](https://img.shields.io/badge/statut-en%20d%C3%A9veloppement-blue)
 ![PHP](https://img.shields.io/badge/PHP-8-777BB4?logo=php&logoColor=white)
 ![Laravel](https://img.shields.io/badge/Laravel-FF2D20?logo=laravel&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white)
 
 ---
 
@@ -14,7 +16,9 @@
 - [À propos](#-à-propos)
 - [Fonctionnalités](#-fonctionnalités)
 - [Aperçu de l'application](#-aperçu-de-lapplication)
+- [Architecture technique](#-architecture-technique)
 - [Stack technique](#-stack-technique)
+- [Points techniques notables](#-points-techniques-notables)
 - [Installation](#-installation)
 - [Utilisation](#-utilisation)
 - [Structure du projet](#-structure-du-projet)
@@ -68,6 +72,34 @@ RestauManager est une application web complète de gestion de restaurant, pensé
 ### Statistiques
 ![Statistiques](docs/screenshots/statistiques.png)
 
+## 🏗️ Architecture technique
+
+L'application repose sur une **architecture événementielle** pour assurer la synchronisation temps réel entre les postes (salle, cuisine, caisse, réception) sans rechargement de page :
+
+```
+Action utilisateur (ex: commande validée)
+        │
+        ▼
+Contrôleur API (OrderController)
+        │
+        ▼
+Service métier (OrderService) ── logique isolée du contrôleur
+        │
+        ▼
+Événement Laravel (OrderValidated, OrderReady, TicketPaid...)
+        │
+        ▼
+Listener (BroadcastOrderValidated...) ── persiste l'événement
+        │
+        ▼
+StreamController (Server-Sent Events) ── pousse l'événement en temps réel
+        │
+        ▼
+Tous les postes connectés se mettent à jour instantanément
+```
+
+Chaque module métier (commandes, tables, tickets, menu, emporter) suit ce même schéma **Contrôleur → Service → Événement → Listener**, ce qui garde la logique métier découplée des contrôleurs et centralise la diffusion temps réel dans un point unique (`StreamController` + table `sse_events`).
+
 ## 🛠️ Stack technique
 
 **Back-end**
@@ -81,6 +113,16 @@ RestauManager est une application web complète de gestion de restaurant, pensé
 - HTML5 / CSS3 / JavaScript (vanilla)
 - Communication temps réel via Server-Sent Events (SSE)
 - Interfaces dédiées par rôle : `admin-dashboard.html`, `restaurant-pos.html`, `cuisine.html`, `reception.html`, `serveur.html`
+
+## 🔍 Points techniques notables
+
+- **Architecture orientée services** : chaque contrôleur délègue sa logique métier à un service dédié (`OrderService`, `TableService`, `TicketService`, `MenuService`, `EmporterService`, `SseEventService`), pour des contrôleurs fins et une logique testable indépendamment
+- **Système d'événements Laravel complet** : 10 événements métier (`OrderCreated`, `OrderValidated`, `OrderReady`, `OrderBilled`, `OrderCancelled`, `OrderItemChanged`, `TableCreated`, `TableStatusChanged`, `TicketPaid`, `MenuUpdated`, `EmporterCreated`) avec leurs listeners de diffusion associés
+- **Temps réel sans WebSocket** : diffusion des événements via **Server-Sent Events (SSE)**, une approche plus légère qu'un serveur WebSocket dédié pour ce cas d'usage, avec persistance des événements en base pour permettre le rattrapage après reconnexion
+- **Contrôle d'accès par rôle** : `RoleMiddleware` restreint chaque route API selon le rôle connecté (admin, caissier, serveur, réception, cuisinier)
+- **Traçabilité** : `ActivityLogMiddleware` journalise les actions sensibles
+- **Base de données flexible** : SQLite pour le développement local (zéro configuration), migration facile vers MySQL en production (commande `TransferSqliteToMysql` dédiée incluse)
+- **Modélisation relationnelle réfléchie** : gestion des commandes multi-personnes par table (`OrderPerson`, `OrderItem`), sections de salle (`Section`), catégories de menu, et suivi des articles retournés
 
 ## 🚀 Installation
 
@@ -150,6 +192,20 @@ restaumanager/
 └── docs/
     └── screenshots/                  # Captures d'écran (README)
 ```
+
+## 🔌 Modules API
+
+| Contrôleur | Responsabilité |
+|---|---|
+| `AuthController` | Connexion, gestion de session par rôle |
+| `OrderController` | Création, validation, modification des commandes |
+| `TableController` | Gestion des tables (statut, section, occupation) |
+| `TicketController` | Émission, paiement, historique des tickets de caisse |
+| `MenuController` | Gestion des catégories et articles du menu |
+| `ReservationController` | Réservations (chambres) |
+| `EmporterController` | Commandes à emporter |
+| `UserController` | Gestion des utilisateurs et rôles |
+| `StreamController` | Diffusion des événements temps réel (SSE) |
 
 ## 👥 Rôles et permissions
 
